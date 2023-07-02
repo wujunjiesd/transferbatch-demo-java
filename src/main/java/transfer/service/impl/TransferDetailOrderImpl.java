@@ -54,13 +54,11 @@ public class TransferDetailOrderImpl implements TransferDetailOrder {
     TransferDetailEntity response;
     try {
       response = service.getTransferDetailByOutNo(request);
-    } catch (WechatPayException e) {
+    } catch (ServiceException e) {
       // http请求成功，但是接口失败，这里需要根据实际需求处理错误码
-      if (e instanceof ServiceException) {
-        throw new BusinessException(
-            ((ServiceException) e).getErrorCode(), ((ServiceException) e).getErrorMessage());
-      }
-      // 上报监控
+      throw new BusinessException(e.getErrorCode(), e.getErrorMessage());
+    } catch (WechatPayException e) {
+      // ...上报监控和打印日志
       throw new BusinessException(Comm.SYSTEM_ERROR, e.getMessage());
     }
     // 如果状态为终态则更新到DB
