@@ -27,5 +27,4 @@ public class MerchantConfig {
   }
 
   private MerchantConfig() {}
-  ;
 }

@@ -5,13 +5,10 @@ import com.wechat.pay.java.core.exception.WechatPayException;
 import com.wechat.pay.java.service.transferbatch.TransferBatchService;
 import com.wechat.pay.java.service.transferbatch.model.GetTransferBatchByOutNoRequest;
 import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferRequest;
-import com.wechat.pay.java.service.transferbatch.model.InitiateBatchTransferResponse;
 import com.wechat.pay.java.service.transferbatch.model.TransferBatchEntity;
 import com.wechat.pay.java.service.transferbatch.model.TransferDetailInput;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import transfer.dto.BatchTransferOrderEntity;
@@ -25,7 +22,6 @@ import transfer.service.BatchTransferOrder;
 
 @Service
 public class BatchTransferOrderImpl implements BatchTransferOrder {
-  Logger logger = LoggerFactory.getLogger(getClass());
   @Autowired BatchTransferOrderMapper batchTransferOrderMapper;
   @Autowired TransferDetailOrderMapper transferDetailOrderMapper;
 
@@ -41,7 +37,6 @@ public class BatchTransferOrderImpl implements BatchTransferOrder {
       batchTransferOrderMapper.create(batchTransferOrderEntity);
     } catch (Exception e) {
       // 注意，这里不支持重入，发生错误需要换单重试，如果要支持重入，判断主键冲突后需要对参数进行判断，保证重入参数前后一致
-      logger.error("##### batchTransferOrderMapper.create error #####：" + e);
       throw new BusinessException("CREATE_BATCH_ERR", "请更换批次单号重新发起批次转账");
     }
     // 2、调用明细单仓储保存明细单
@@ -51,7 +46,6 @@ public class BatchTransferOrderImpl implements BatchTransferOrder {
       }
     } catch (Exception e) {
       // 注意，这里不支持重入，发生错误需要换单重试，如果要支持重入，判断主键冲突后需要对参数进行判断，保证重入参数前后一致
-      logger.error("##### transferDetailOrderMapper.create error #####：" + e);
       throw new BusinessException("CREATE_DETAIL_ERR", "请更换单号重新发起批次转账");
     }
 
@@ -113,16 +107,14 @@ public class BatchTransferOrderImpl implements BatchTransferOrder {
     }
     request.setTransferDetailList(transferDetailInputs);
     try {
-      InitiateBatchTransferResponse response = service.initiateBatchTransfer(request);
+      service.initiateBatchTransfer(request);
     } catch (WechatPayException e) {
       // http请求成功，但是接口失败，这里需要根据实际需求处理错误码
       if (e instanceof ServiceException) {
-        logger.error("##### initiateBatchTransfer error #####：" + e);
         throw new BusinessException(
             ((ServiceException) e).getErrorCode(), ((ServiceException) e).getErrorMessage());
       }
       // ...上报监控和打印日志
-      logger.error("error:" + e);
       throw new BusinessException(Comm.SYSTEM_ERROR, e.getMessage());
     }
   }
@@ -144,12 +136,10 @@ public class BatchTransferOrderImpl implements BatchTransferOrder {
     } catch (WechatPayException e) {
       // http请求成功，但是接口失败，这里需要根据实际需求处理错误码
       if (e instanceof ServiceException) {
-        logger.error("##### getTransferBatchByOutNo error #####：" + e);
         throw new BusinessException(
             ((ServiceException) e).getErrorCode(), ((ServiceException) e).getErrorMessage());
       }
-      // ...上报监控和打印日志
-      logger.error("error:" + e);
+      // 上报监控
       throw new BusinessException(Comm.SYSTEM_ERROR, e.getMessage());
     }
     // 如果状态有更新则更新到DB

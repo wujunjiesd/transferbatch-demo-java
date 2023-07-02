@@ -121,6 +121,6 @@ public class BatchTransferOrderEntity {
   }
 
   public void setTransferDetailOrders(List<TransferDetailOrderEntity> transferDetailOrders) {
-    this.transferDetailOrders = new ArrayList<TransferDetailOrderEntity>(transferDetailOrders);
+    this.transferDetailOrders = new ArrayList<>(transferDetailOrders);
   }
 }

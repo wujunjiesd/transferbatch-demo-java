@@ -7,4 +7,6 @@ public class Comm {
   public static final String FAIL = "FAIL";
   // 错误码-系统失败
   public static final String SYSTEM_ERROR = "SYSTEM_ERROR";
+
+  private Comm() {}
 }
